@@ -57,7 +57,6 @@ for employee_data_line in f:
 f.close()
 
 
-
 # Read required data from customer file
 f = open("customerLog.dat", "r")
 for customer_data_line in f:
@@ -76,6 +75,56 @@ for purchase_data_line in f:
 f.close()
 
 
+# -----------------
+# Validation start
+# -----------------
+
+def check_char_num(value_name, value_to_check, high_char_num, low_char_num = 1):
+# The function checks whether the length of the given value ("value_to_check") is within the specified range or returns "None"
+    if value_to_check == "":
+    # if "value_to_check" is an empty string show the warning message
+        print(f"\nSorry the \"{value_name}\" cannot be empty")
+    elif low_char_num <= len(value_to_check) <= high_char_num:
+    # if the length is within the specified range return the value
+        return value_to_check
+    else:
+    # if the length is NOT within the specified range, show a warning message
+        if low_char_num == high_char_num:
+            print(f"\nSorry, the \"{value_name}\" must be \"{high_char_num}\" characters long. You entered \"{len(value_to_check)}\"")
+        else:
+            print(f"\nSorry, the \"{value_name}\" must be from \"{low_char_num}\" to \"{high_char_num}\" characters long. You entered \"{len(value_to_check)}\"")
+
+
+def get_accepted_set(format = False):
+# The function returns a certain set of accepted characters depending on the "format" given
+    if not format or format == "A-z'- .#0-9":
+        return set("ABCDEFGHIJKLMONPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz'- .#0123456789")
+    elif format == "A-z'- .":
+        return set("ABCDEFGHIJKLMONPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz'- .")
+    elif format == "A-z'-":
+        return set("ABCDEFGHIJKLMONPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz'-")
+    else:
+        return set(format)
+
+
+def check_valid_format(value_name, value_to_check, format = False):
+    # The function checks if the given value ("value_to_check") is valid based on the specified "format"
+
+    # "get_accepted_set" returns a certain set of accepted characters depending on the specified "format"
+    accepted_char = get_accepted_set(format)
+
+    if set(value_to_check).issubset(accepted_char):
+    # If "value_to_check" has a valid format return this value
+        return value_to_check 
+    else:
+    # Show the warning message if not
+        print(f"\nSorry, the \"{value_name}\" is not valid. You entered: \"{value_to_check}\"")
+
+# -----------------
+# Validation end
+# -----------------
+
+
 def option_one():
     """A function that will enter a new employee's information, then
     append it all into the employee file as a new record."""
@@ -85,50 +134,91 @@ def option_one():
         employee_info = []
 
         # User Validated Inputs
-        # First name, mandatory input, alpha only, converted to Title-case
-        while True:
-            emp_f_name = input("First Name: ").title()
-            if emp_f_name == "":
-                print("First name cannot be empty, Please re-enter")
-            elif not emp_f_name.isalpha():
-                print("Please enter a valid name")
-            else:
-                break
 
-        # Last name, mandatory input, alpha only, converted to Title-case
+        # First Name, mandatory input, converted to Title-case
         while True:
-            emp_l_name = input("Last Name: ").title()
-            if emp_l_name == "":
-                print("Last name cannot be empty, Please re-enter")
-            elif not emp_l_name.isalpha():
-                print("Please enter a valid name")
-            else:
-                break
+        # Repeat the loop until the user enters a valid "first name"
+            emp_f_name = input("First Name: ")
+            # Check if the length of "emp_f_name" is within the specified range (1-15) or return "None" 
+            emp_f_name = check_char_num("first name", emp_f_name, 15)
+
+            if emp_f_name:
+            # Check if "emp_f_name" is valid based on the "format" given ("A-z'-")
+                emp_f_name = check_valid_format("first name", emp_f_name, "A-z'-")
+
+                if emp_f_name:
+                # If "emp_f_name" is valid make it "Title Case" and exit the loop
+                    emp_f_name = emp_f_name.title()
+                    break
+            
+            # Show a message and repeat the loop
+            print("Please try again\n")
+
+        # Last Name, mandatory input, converted to Title-case
+        while True:
+        # Repeat the loop until the user enters a valid "last name"
+            emp_l_name = input("Last Name: ")
+            # Check if the length of "emp_l_name" is within the specified range (1-15) or return "None" 
+            emp_l_name = check_char_num("last name", emp_l_name, 15)
+
+            if emp_l_name:
+            # Check if "emp_l_name" is valid based on the "format" given ("A-z'-")
+                emp_l_name = check_valid_format("last name", emp_l_name, "A-z'-")
+
+                if emp_l_name:
+                # If "emp_l_name" is valid make it "Title Case" and exit the loop
+                    emp_l_name = emp_l_name.title()
+                    break
+            
+            # Show a message and repeat the loop
+            print("Please try again\n")
 
         # Street Address, mandatory input, converted to Title-case
         while True:
-            str_add = input("Street Address: ").title()
-            if str_add == "":
-                print("Street address cannot be empty, Please re-enter")
-            else:
-                break
+        # Repeat the loop until the user enters a valid "street address"
+            str_add = input("Street Address: ")
+            # Check if the length of "str_add" is within the specified range (1-30) or return "None" 
+            str_add = check_char_num("street address", str_add, 30)
+
+            if str_add:
+            # Check if "str_add" is valid based on the "format" given ("A-z'- .#0-9")
+                str_add = check_valid_format("street address", str_add, "A-z'- .#0-9")
+
+                if str_add:
+                # If "str_add" is valid make it "Title Case" and exit the loop
+                    str_add = str_add.title()
+                    break
+            
+            # Show a message and repeat the loop
+            print("Please try again\n")
 
         # City, mandatory input, converted to Title-case
         while True:
-            city = input("City: ").title()
-            if city == "":
-                print("City cannot be empty, Please re-enter")
-            else:
-                break
+        # Repeat the loop until the user enters a valid "city"
+            city = input("City: ")
+            # Check if the length of "city" is within the specified range (1-19) or return "None" 
+            city = check_char_num("city", city, 19)
+
+            if city:
+            # Check if "city" is valid based on the "format" given ("A-z'- .")
+                city = check_valid_format("city", city, "A-z'- .")
+
+                if city:
+                # If "city" is valid make it "Title Case" and exit the loop
+                    city = city[:-1].title() + city[-1].lower()
+                    break
+            
+            # Show a message and repeat the loop
+            print("Please try again\n")
 
         # Province, mandatory input,converted to Upper-case, compared to valid list of provinces
         while True:
             prov = input("Province (XX): ").upper()
 
-            if len(prov) != 2:
-                print("Please re-enter province as (XX)")
-            elif prov == "":
+            if prov == "":
                 print("Province field cannot be empty, Please re-enter")
+            elif len(prov) != 2:
+                print("Please re-enter province as (XX)")
             elif prov not in valid_prov:
                 print("Please enter a valid province")
             else:
@@ -140,7 +230,7 @@ def option_one():
         pattern = r"^[A-Z]\d[A-Z][ -]?\d[A-Z]\d$"
 
         while True:
-            post_code = input("Postal Code: (e.g. A1A 1A1):   ").upper()
+            post_code = input("Postal Code: (e.g. A1A 1A1): ").upper()
             if re.match(pattern, post_code):
                 break
             else:
@@ -205,13 +295,24 @@ def option_one():
                 else:
                     break
 
-        # Employee Skills, mandatory input, alpha only
+        # Employee Skills, mandatory input
         while True:
-            emp_skills = input("Employee skill: ").title()
-            if not emp_skills.isalpha():
-                print("Please enter valid skill")
-            else:
-                break
+        # Repeat the loop until the user enters a valid "employee skill"
+            emp_skills = input("Employee skill: ")
+            # Check if the length of "emp_skills" is within the specified range (1-40) or return "None" 
+            emp_skills = check_char_num("employee skill", emp_skills, 40)
+
+            if emp_skills:
+            # Check if "emp_skills" is valid based on the "format" given ("A-z'- .")
+                emp_skills = check_valid_format("employee skill", emp_skills, "A-z'- .")
+
+                if emp_skills:
+                # If "emp_skills" is valid make it "Title Case" and exit the loop
+                    emp_skills = emp_skills.title()
+                    break
+            
+            # Show a message and repeat the loop
+            print("Please try again\n")
 
         # Birthdate, mandatory input, valid date
         while True:
