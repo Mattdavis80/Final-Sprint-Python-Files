@@ -13,14 +13,20 @@ today = datetime.datetime.now()
 today_str = datetime.datetime.strftime(today, "%d-%m-%Y")
 
 # Assign required constants
-
+DATE_COMMISSION_CALC = 1
 DATE_START_COMPANY = datetime.datetime(2000, 1, 1)
 THRESHOLD_EMP_AGE = 100
 DATE_THRESHOLD_EMP_AGE = today - datetime.timedelta(THRESHOLD_EMP_AGE * 365.25)
 
-# Lists for validation and receipts
+# - lists for validation and receipts
 VALID_PROV = ["NL", "PE", "NS", "NB", "QC", "ON", "MB", "SK", "AB", "BC", "YT", "NT", "NU"]
 BRANCH_LIST = ["St. John's", "Mt. Pearl", "Carbonear", "Northern Bay"]
+
+# - constants for output structure
+HEADER_COMPANY_NAME = "Simpson Carpet World"
+SUBHEADER = "Company Services System"
+LINES_HEADER = "<>" * 13
+LINES_NOTE = "-" * 121
 
 # Read data from the file defaults.dat
 f = open('defaults.dat', 'r')
@@ -149,6 +155,22 @@ def get_valid_date(value_name, date_threshold_low, date_threshold_high, format="
 # ----------------------------
 # The end of validation block
 # ----------------------------
+
+def back_main_menu(key_name="Return"):
+# The function provides a convenient way for users to return to the main menu of a program 
+    return input(f"\nHit \"{key_name}\" to go back to the Main Menu: ")
+
+
+def show_title(symbols_up_n_down, title, add_symb_num = 2):
+# The function shows the title surrounded by specified "symbols_up_n_down". Returns "None"
+    align_num_chars = len(title) + add_symb_num
+
+    print()
+    print(f"{symbols_up_n_down}" * align_num_chars)
+    print(f"{title :^{align_num_chars}}")
+    print(f"{symbols_up_n_down}" * align_num_chars)
+    print()
+
 
 def option_one():
     """A function that will enter a new employee's information, then
@@ -567,8 +589,7 @@ def option_five():
     """A function that is used to process and print out an employee listing."""
 
     # Print the headings
-    print()
-    print("Simpson's Carpet World")
+    print(HEADER_COMPANY_NAME)
     print(f"Employee Listing as of {today_str}")
     print("------------------------------------------------------------------------------")
     print("Employee #    Employee Name          Title               Branch        Salary")
@@ -608,8 +629,6 @@ def option_five():
     print(f"Total Employees: {total_employees_acc:>3d}    Average Salary: {FV.FDollar2(average_salary):>10s}   "
           f"Total Salary: {FV.FDollar2(total_salary_acc):>11s}")
 
-    pass
-
 
 def option_six():
     pass
@@ -623,8 +642,7 @@ def option_eight():
     """A function that is used to process and print out a reorder listing."""
 
     # Print the headings
-    print()
-    print("Simpson's Carpet World")
+    print(HEADER_COMPANY_NAME)
     print(f"Product Reorder Listing as of {today_str}")
     print("------------------------------------------------------------------------------")
     print("  Item #     Item Name        On Hand     Amt Ordered     Expected After Order")
@@ -673,53 +691,75 @@ def option_eight():
     print(f"Total Items: {item_count:>2d}        Last Order: $30,000.00        Current Order: {FV.FDollar2(order_amt)}")
 
 
-def problem_solving(day):
-    if today.day == day:
-        # read the customer purchase data from the file
-        with open('CustomerPurchase.dat', 'r') as f:
-            purchases = [line.strip().split(', ') for line in f.readlines()]
+def problem_solving():
+    # read the customer purchase data from the file
+    with open('CustomerPurchase.dat', 'r') as f:
+        purchases = [line.strip().split(', ') for line in f.readlines()]
 
-        # calculate the sales totals for each employee
-        sales_totals = {}
-        for purchase in purchases:
-            emp_id = purchase[9]
-            subtotal = float(purchase[7])
-            if emp_id not in sales_totals:
-                sales_totals[emp_id] = subtotal
-            else:
-                sales_totals[emp_id] += subtotal
+    # calculate the sales totals for each employee
+    sales_totals = {}
 
-        # calculate the commission for each employee and display the results
-        unique_emp_ids = set(sales_totals.keys())
-        print(f'Commission totals for {len(unique_emp_ids)} employees as of {today.year}-{today.month:02d}-{today.day:02d}:')
-        for emp_id in unique_emp_ids:
-            sales_total = sales_totals[emp_id]
-            commission = 0.06 * sales_total
-            if sales_total > 5000:
-                commission += 200
-            print(f'Employee {emp_id}: ${commission:.2f}')
-    else:
-        print('Commission calculation only runs on the first day of the month.')
+    for purchase in purchases:
+        emp_id = purchase[9]
+        subtotal = float(purchase[7])
 
+        if emp_id not in sales_totals:
+            sales_totals[emp_id] = subtotal
+        else:
+            sales_totals[emp_id] += subtotal
+
+    # Assign the list of unique employee IDs by extracting them from the dictionary keys and sorting them in ascending order. 
+    unique_emp_ids = sorted(sales_totals.keys())
+
+    # Generate output for the user
+    print(HEADER_COMPANY_NAME)
+    print(f"Commission totals for \"{len(unique_emp_ids)}\" employees as of \"{today.day:02d}-{today.month:02d}-{today.year}\"")
+    print("-" * 26)
+    print(" Employee #    Commission ")
+    print("-" * 26)
+
+    # Calculate the commission for each employee
+    for emp_id in unique_emp_ids:
+        sales_total = sales_totals[emp_id]
+        commission = 0.06 * sales_total
+
+        if sales_total > 5000:
+            commission += 200
+
+        # Display the results
+        print(f"  {emp_id :<4s}         {FV.FDollar2(commission) :>9s}")
+
+    print("-" * 26)
 
 while True:
-    problem_solving(1)
-    # Allow user to enter as many employees as needed, option to escape loop at end via input statement
     print()
-    print("   Simpson Carpet World")
-    print("  Company Services System")
+    print(f"{LINES_HEADER :<{len(LINES_HEADER)}}")
+    print(f"{HEADER_COMPANY_NAME :^{len(LINES_HEADER)}}")
+    print(f"{SUBHEADER :^{len(LINES_HEADER)}}")
+    print(f"{LINES_HEADER :<{len(LINES_HEADER)}}")
     print()
-    print('1. Enter a New Employee.')
-    print('2. Enter a New Customer.')
-    print('3. Enter a New Inventory Item.')
-    print('4. Record Customer Purchase.')
-    print('5. Print Employee Listing.')
-    print('6. Print Customers By Branch.')
-    print('7. Print Orders By Customer.')
-    print('8. Print Recorder Listing.')
-    print('9. Extra option for total commission of each employee on certain day.')
+    print('1. Enter a New Employee (+)')
+    print('2. Enter a New Customer (-)')
+    print('3. Enter a New Inventory Item (-)')
+    print()
+    print('4. Record Customer Purchase (+)')
+    print()
+    print('5. Print Employee Listing (+)')
+    print('6. Print Customers By Branch (-)')
+    print('7. Print Orders By Customer (-)')
+    print('8. Print Recorder Listing (+)')
+    print('9. Print total commission of each employee (Extra) (+)')
+    print()
     print('10. Exit Menu')
     print()
+
+    if today.day == DATE_COMMISSION_CALC:
+        problem_solving()
+    else:
+        print(LINES_NOTE)
+        print(f" Note: The system performs commission calculations automatically once a month, specifically on the \"{DATE_COMMISSION_CALC}\" of each month")
+        print("       If you need to view calculations for today's date, you can access them by selecting the ninth option in the menu")
+        print(LINES_NOTE)
     print()
 
     while True:
@@ -734,7 +774,7 @@ while True:
                 break
 
     if choice == 1:
-        print()
+        show_title("*", "(1) - Enter a New Employee", add_symb_num = 2)
         print('Welcome to the Employee Portal')
         print("Please enter the following information:")
         print()
@@ -750,13 +790,12 @@ while True:
         print("------------")
         option_three()
     elif choice == 4:
-        print()
-        print('Fourth option')
-        print("-------------")
+        show_title("*", "(4) - Record Customer Purchase", add_symb_num = 2)
         option_four()
     elif choice == 5:
-        print()
+        show_title("*", "(5) - Employee Listing", add_symb_num = 2)
         option_five()
+        back_main_menu()
     elif choice == 6:
         print()
         print('Sixth option')
@@ -768,15 +807,13 @@ while True:
         print("--------------")
         option_seven()
     elif choice == 8:
-        print()
-        print('Eighth option')
-        print("-------------")
+        show_title("*", "(8) - Recorder Listing", add_symb_num = 2)
         option_eight()
+        back_main_menu()
     elif choice == 9:
-        print()
-        print('Ninetieth option')
-        print("-------------")
-        day = int(input("Please enter the day of month, commission totals are to be calculated: "))
-        problem_solving(day)
+        show_title("*", "(9) - Total commission of each employee", add_symb_num = 2)
+        problem_solving()
+        back_main_menu()
     elif choice == 10:
+        show_title("*", "(10) - Congrats, you have successfully left the program. Hope to see you soon!", add_symb_num = 2)
         exit()
