@@ -27,6 +27,7 @@ HEADER_COMPANY_NAME = "Simpson Carpet World"
 SUBHEADER = "Company Services System"
 LINES_HEADER = "<>" * 13
 LINES_NOTE = "-" * 121
+LINES_REORDER_LISTING = "-" * 81
 
 # Read data from the file defaults.dat
 f = open('defaults.dat', 'r')
@@ -150,6 +151,21 @@ def get_valid_date(value_name, date_threshold_low, date_threshold_high, format="
         elif date_checked > date_threshold_high:
             # If the date exceeds the upper limit, show an error message.
             print(f"\nSorry, the \"{value_name}\" is not valid. You entered: \"{date_input}\"")
+
+
+def shorten_name(list_name, threshold_high):
+    # The function shortens the name if it exceeds a specified character limit
+
+    # Concatenate the elements of 'list_name' with a space in between
+    full_name = " ".join(list_name)
+
+    # Check if the length of the name exceeds the given threshold
+    if len(full_name) > threshold_high:
+        # If the length exceeds the threshold, truncate the name to fit within the threshold
+        return "{0}. {1}".format(list_name[0][:(threshold_high - (len(list_name[1]) + 2))], list_name[1])
+    elif len(full_name) <= threshold_high:
+        # If the length is equal to or less than the threshold, return the full name as it is
+        return full_name
 
 
 # ----------------------------
@@ -590,6 +606,7 @@ def option_five():
 
     # Print the headings
     print(HEADER_COMPANY_NAME)
+    print()
     print(f"Employee Listing as of {today_str}")
     print("------------------------------------------------------------------------------")
     print("Employee #    Employee Name          Title               Branch        Salary")
@@ -643,10 +660,11 @@ def option_eight():
 
     # Print the headings
     print(HEADER_COMPANY_NAME)
+    print()
     print(f"Product Reorder Listing as of {today_str}")
-    print("------------------------------------------------------------------------------")
-    print("  Item #     Item Name        On Hand     Amt Ordered     Expected After Order")
-    print("------------------------------------------------------------------------------")
+    print(f"{LINES_REORDER_LISTING :<{len(LINES_REORDER_LISTING)}}")
+    print("Item #   Name           QOH  Ordered  Qty After Shipment   Item Cost   Total Cost")
+    print(f"{LINES_REORDER_LISTING :<{len(LINES_REORDER_LISTING)}}")
 
     # Initialize counters and accumulators
     item_count = 0
@@ -660,35 +678,35 @@ def option_eight():
         item_line = item_data_line.split(',')
         item_num = int(item_line[0].strip())
         item_description = item_line[1].strip()
-        retail_price = float(item_line[7].strip())
+        item_color = item_line[2].strip()
+        item_cost = float(item_line[6].strip())
         QOH = int(item_line[8].strip())
         reorder_point = int(item_line[9].strip())
         max_amt = int(item_line[10].strip())
 
-        # Set up the condition for the exception in an if statement
+        # Format output variables
+        item_name_dsp = shorten_name([item_description.split(" ")[0], item_color], 14)
+
         # Check to see if the item needs to be reordered and calculate the amount to order
-        while True:
-            if QOH <= reorder_point:
-                amt_need = max_amt - QOH
-                order_amt += (retail_price * amt_need)
+        if QOH == max_amt:
+            # If the quantity on hand is equal to the max amount, stop processing the item and go to the next iteration
+            continue
+        elif QOH <= reorder_point:
+            amt_need = max_amt - QOH
+            total_cost = item_cost * amt_need
 
-                # Print the detail line (items that need to be reordered)
-                print(
-                    f'  {item_num:>4d}      {item_description:<14s}     {QOH:>4d}     {amt_need:>9d}   {max_amt:>15d}')
+            # Print the detail line (items that need to be reordered)
+            print(
+                f' {item_num:>4d}  {item_name_dsp:<14s}  {QOH:>4d}   {amt_need:>4d}           {max_amt:>4d}          {FV.FDollar2(item_cost) :>9s}   {FV.FDollar2(total_cost) :>10s}')
 
-                # Update counters and accumulators
-                QOH += amt_need
-                item_count += 1
-
-            # If the quantity on hand is equal to the max amount, stop processing the item
-            elif QOH == max_amt:
-                break
-            break
+            # Update counters and accumulators
+            item_count += 1
+            order_amt += total_cost
 
     # Close the file and print the summary data
     f.close()
-    print("------------------------------------------------------------------------------")
-    print(f"Total Items: {item_count:>2d}        Last Order: $30,000.00        Current Order: {FV.FDollar2(order_amt)}")
+    print(f"{LINES_REORDER_LISTING :<{len(LINES_REORDER_LISTING)}}")
+    print(f"Items #: {item_count:<4d}  (Last Order: 01-04-2023   $15,000.00)   Current Order: {FV.FDollar2(order_amt) :>11s}")
 
 
 def problem_solving():
@@ -713,6 +731,7 @@ def problem_solving():
 
     # Generate output for the user
     print(HEADER_COMPANY_NAME)
+    print()
     print(f"Commission totals for \"{len(unique_emp_ids)}\" employees as of \"{today.day:02d}-{today.month:02d}-{today.year}\"")
     print("-" * 26)
     print(" Employee #    Commission ")
@@ -747,7 +766,7 @@ while True:
     print('5. Print Employee Listing (+)')
     print('6. Print Customers By Branch (-)')
     print('7. Print Orders By Customer (-)')
-    print('8. Print Recorder Listing (+)')
+    print('8. Print Reorder Listing (+)')
     print('9. Print total commission of each employee (Extra) (+)')
     print()
     print('10. Exit Menu')
@@ -793,7 +812,7 @@ while True:
         show_title("*", "(4) - Record Customer Purchase", add_symb_num = 2)
         option_four()
     elif choice == 5:
-        show_title("*", "(5) - Employee Listing", add_symb_num = 2)
+        show_title("*", "(5) - Employee Listing Report", add_symb_num = 2)
         option_five()
         back_main_menu()
     elif choice == 6:
@@ -807,7 +826,7 @@ while True:
         print("--------------")
         option_seven()
     elif choice == 8:
-        show_title("*", "(8) - Recorder Listing", add_symb_num = 2)
+        show_title("*", "(8) - Reorder Listing Report", add_symb_num = 2)
         option_eight()
         back_main_menu()
     elif choice == 9:
