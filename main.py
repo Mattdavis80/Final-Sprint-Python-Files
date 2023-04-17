@@ -15,15 +15,15 @@ today_str = datetime.datetime.strftime(today, "%d-%m-%Y")
 # Assign required constants
 DATE_COMMISSION_CALC = 1
 DATE_START_COMPANY = datetime.datetime(2000, 1, 1)
-THRESHOLD_EMP_AGE = 100
-DATE_THRESHOLD_EMP_AGE = today - datetime.timedelta(THRESHOLD_EMP_AGE * 365.25)
+DATE_THRESHOLD_EMP_LOW_AGE = today - datetime.timedelta(16 * 365.25)
+DATE_THRESHOLD_EMP_HIGH_AGE = today - datetime.timedelta(100 * 365.25)
 
 # - lists for validation and receipts
 VALID_PROV = ["NL", "PE", "NS", "NB", "QC", "ON", "MB", "SK", "AB", "BC", "YT", "NT", "NU"]
-BRANCH_LIST = ["St. John's", "Mt. Pearl", "Carbonear", "Northern Bay"]
+BRANCH_PROV = ["NL-1", "NS-2", "NB-3", "QC-4", "ON-5"]
 
 # - constants for output structure
-HEADER_COMPANY_NAME = "Simpson Carpet World"
+HEADER_COMPANY_NAME = "Simpson's Carpet World"
 SUBHEADER = "Company Services System"
 LINES_HEADER = "<>" * 13
 LINES_NOTE = "-" * 121
@@ -150,7 +150,7 @@ def get_valid_date(value_name, date_threshold_low, date_threshold_high, format="
                 f"\nSorry, the \"{value_name}\" is not valid. The closest valid date is: {date_threshold_low.strftime(format)}")
         elif date_checked > date_threshold_high:
             # If the date exceeds the upper limit, show an error message.
-            print(f"\nSorry, the \"{value_name}\" is not valid. You entered: \"{date_input}\"")
+            print(f"\nSorry, the \"{value_name}\" is not valid. You entered: \"{date_input}\". The closest valid date is: {date_threshold_high.strftime(format)}")
 
 
 def shorten_name(list_name, threshold_high):
@@ -231,6 +231,19 @@ def option_one():
                     # If "emp_l_name" is valid make it "Title Case" and exit the loop
                     emp_l_name = emp_l_name.title()
                     break
+
+            # Show a message and repeat the loop
+            print("Please try again\n")
+
+        # Birthdate, mandatory input, valid date
+        while True:
+            # Repeat the loop until the user enters a valid "Birthdate"
+            # Prompt the user to input the "birthdate"
+            birthdate = get_valid_date("birthdate", DATE_THRESHOLD_EMP_HIGH_AGE, DATE_THRESHOLD_EMP_LOW_AGE)
+
+            if birthdate:
+                # If the "birthdate" is valid exit the loop
+                break
 
             # Show a message and repeat the loop
             print("Please try again\n")
@@ -341,17 +354,22 @@ def option_one():
             # Show a message and repeat the loop
             print("Please try again\n")
 
-        # Employee Branch Number, mandatory input
+        # Branch province, mandatory input, converted to Upper-case, compared to valid list of branch provinces ("BRANCH_PROV")
         while True:
-            try:
-                emp_branch_num = int(input("Last digit of Branch Number: NL-00X (0-3): "))
-            except ValueError:
-                print("Please enter valid number")
+            # Prompt the user to enter a branch province code and convert it to uppercase.
+            emp_branch_province = input(f"Please enter the branch province ({', '.join(BRANCH_PROV)}): ").upper()
+
+            if emp_branch_province == "":
+            # Check if the branch province field is empty
+                print("Branch province field cannot be empty, Please re-enter")
+            elif "{0}-{1}".format(emp_branch_province[:2], emp_branch_province[-1]) in BRANCH_PROV:
+            # If the code is valid, generate a branch code by combining the first two characters of the province code with the last integer character (branch number)
+                emp_branch = "{0}-{1:0{width}}".format(emp_branch_province[:2], int(emp_branch_province[-1]), width=3)
+                # Exit the loop
+                break
             else:
-                if emp_branch_num < 0 or emp_branch_num > 3:
-                    print("Please enter a valid branch number")
-                else:
-                    break
+                # If the entered code is not in the list of accepted codes, display an error message and continue the loop
+                print("\nPlease enter a valid branch province\n")
 
         # Employee title, mandatory input, checked via regular expressions, Alpha only 20 character max size.
         pattern = r"^[a-zA-Z ]{0,20}$"
@@ -397,26 +415,12 @@ def option_one():
             # Show a message and repeat the loop
             print("Please try again\n")
 
-        # Birthdate, mandatory input, valid date
-        while True:
-            # Repeat the loop until the user enters a valid "Birthdate"
-            # Prompt the user to input the "birthdate"
-            birthdate = get_valid_date("birthdate", DATE_THRESHOLD_EMP_AGE, today)
-
-            if birthdate:
-                # If the "birthdate" is valid exit the loop
-                break
-
-            # Show a message and repeat the loop
-            print("Please try again\n")
-
         # Format currency related variables
         emp_salary_out = "{:.2f}".format(emp_salary)
 
         # Append the new employee information to the "employee_info" list
         employee_info.extend(
-            [employee_num, emp_f_name, emp_l_name, str_add, city, prov, post_code, phone_num, date_hired,
-             emp_branch_num, emp_title, emp_salary_out, emp_skills, birthdate])
+            [employee_num, emp_f_name, emp_l_name, str_add, city, prov, post_code, phone_num, date_hired, emp_branch, emp_title, emp_salary_out, emp_skills, birthdate])
 
         # Append info to Employee Log data file
         with open('employeeLog.dat', 'a') as fhandle:
