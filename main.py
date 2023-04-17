@@ -371,8 +371,9 @@ def option_one():
                 # If the entered code is not in the list of accepted codes, display an error message and continue the loop
                 print("\nPlease enter a valid branch province\n")
 
-        # Employee title, mandatory input, checked via regular expressions, Alpha only 20 character max size.
-        pattern = r"^[a-zA-Z ]{0,20}$"
+        # Employee title, mandatory input, checked via regular expressions. 20 character max size.
+        pattern = "^[a-zA-Z][a-zA-Z\s\.\-']{0,18}[a-zA-Z]$"
+        
         while True:
             emp_title = input("Employee Title: ").title()
             if re.match(pattern, emp_title):
@@ -542,7 +543,11 @@ def option_four():
                     list_record = [item.lstrip() for item in record.split(',')]
                     # Extract required data and assign it to the variables
                     description = list_record[1]
+                    item_color = list_record[2]
                     retail_cost = float(list_record[7])
+
+                    # Format output variables
+                    item_name_out = "{0} {1}".format(description, item_color)
 
                     # Exit the loop as soon as the required record is found
                     break
@@ -560,7 +565,7 @@ def option_four():
 
         # Append the new purchase information to the "purchase_info" list
         purchase_info.extend(
-            [order_num, order_date, cust_num, item_num, description, retail_cost_out, quantity, subtotal_out,
+            [order_num, order_date, cust_num, item_num, item_name_out, retail_cost_out, quantity, subtotal_out,
              order_total_out, emp_number])
 
         # Open file and write back all data
@@ -689,7 +694,7 @@ def option_eight():
         max_amt = int(item_line[10].strip())
 
         # Format output variables
-        item_name_dsp = shorten_name([item_description.split(" ")[0], item_color], 14)
+        item_name_out = shorten_name([item_description.split(" ")[0], item_color], 14)
 
         # Check to see if the item needs to be reordered and calculate the amount to order
         if QOH == max_amt:
@@ -701,7 +706,7 @@ def option_eight():
 
             # Print the detail line (items that need to be reordered)
             print(
-                f' {item_num:>4d}  {item_name_dsp:<14s}  {QOH:>4d}   {amt_need:>4d}           {max_amt:>4d}          {FV.FDollar2(item_cost) :>9s}   {FV.FDollar2(total_cost) :>10s}')
+                f' {item_num:>4d}  {item_name_out:<14s}  {QOH:>4d}   {amt_need:>4d}           {max_amt:>4d}          {FV.FDollar2(item_cost) :>9s}   {FV.FDollar2(total_cost) :>10s}')
 
             # Update counters and accumulators
             item_count += 1
